@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  notifications-api:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.api
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DB_HOST=notifications-db
+      - DB_PORT=5432
+      - DB_NAME=notifications
+      - DB_USER=notifications
+      - DB_PASSWORD=notifications
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+      - notifications-db
+
+#  notifications-worker:
+#    build:
+#      context: ..
+#      dockerfile: ./infra/Dockerfile.worker
+#    environment:
+#      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - DB_HOST=notifications-db
+#      - DB_PORT=5432
+#      - DB_NAME=notifications
+#      - DB_USER=notifications
+#      - DB_PASSWORD=notifications
+#    depends_on:
+#      - kafka
+#      - notifications-db
+
+  notifications-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=notifications
+      - POSTGRES_USER=notifications
+      - POSTGRES_PASSWORD=notifications
+    ports:
+      - "5433:5432"
+    volumes:
+      - notifications-db-data:/var/lib/postgresql/data
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      # Листенеры
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # Настройки для single-node (репликация 1)
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+      # Хранилище логов KRaft
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+
+      # Любой постоянный Cluster ID
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+volumes:
+  notifications-db-data:
