@@ -1,5 +1,3 @@
-# src/notifications/db/models.py
-
 from __future__ import annotations
 
 from datetime import datetime
@@ -26,6 +24,7 @@ class DeliveryStatus(str, Enum):
     SENT = "SENT"
     FAILED = "FAILED"
     RETRYING = "RETRYING"
+    EXPIRED = "EXPIRED"
 
 
 class CampaignStatus(str, Enum):
@@ -37,7 +36,12 @@ class CampaignStatus(str, Enum):
 class Template(Base):
     __tablename__ = "templates"
     __table_args__ = (
-        UniqueConstraint("template_code", "locale", "channel", name="uq_template_code_locale_channel"),
+        UniqueConstraint(
+            "template_code",
+            "locale",
+            "channel",
+            name="uq_template_code_locale_channel",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
@@ -49,34 +53,54 @@ class Template(Base):
     body: Mapped[str] = mapped_column(Text, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
 
 class NotificationDelivery(Base):
     __tablename__ = "notification_delivery"
+    __table_args__ = (
+        UniqueConstraint("job_id", name="uq_notification_delivery_job_id"),
+    )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    job_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False, index=True)
+    # ВАЖНО: job_id — PRIMARY KEY, идемпотентность по job_id
+    job_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
     user_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False, index=True)
 
     channel: Mapped[str] = mapped_column(String(20), nullable=False)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default=DeliveryStatus.RETRYING.value)
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default=DeliveryStatus.RETRYING.value,
+    )
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
 
@@ -89,13 +113,22 @@ class Campaign(Base):
     template_code: Mapped[str] = mapped_column(String(100), nullable=False)
     segment_id: Mapped[str] = mapped_column(String(255), nullable=False)
     schedule_cron: Mapped[str] = mapped_column(String(100), nullable=False)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default=CampaignStatus.INACTIVE.value)
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default=CampaignStatus.INACTIVE.value,
+    )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
-'''todo finish up models'''
+# todo: дополнительные модели позже

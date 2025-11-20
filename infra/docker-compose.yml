@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: ./infra/Dockerfile.api
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - DB_HOST=notifications-db
       - DB_PORT=5432
       - DB_NAME=notifications
@@ -15,34 +15,44 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - kafka
-      - notifications-db
+      kafka-init:
+        condition: service_completed_successfully
+      notifications-db-init:
+        condition: service_completed_successfully
 
-#  notifications-worker:
-#    build:
-#      context: ..
-#      dockerfile: ./infra/Dockerfile.worker
-#    environment:
-#      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-#      - DB_HOST=notifications-db
-#      - DB_PORT=5432
-#      - DB_NAME=notifications
-#      - DB_USER=notifications
-#      - DB_PASSWORD=notifications
-#    depends_on:
-#      - kafka
-#      - notifications-db
+  notifications-worker:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.worker
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - DB_HOST=notifications-db
+      - DB_PORT=5432
+      - DB_NAME=notifications
+      - DB_USER=notifications
+      - DB_PASSWORD=notifications
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      notifications-db-init:
+        condition: service_completed_successfully
 
   notifications-db:
     image: postgres:16
     environment:
-      - POSTGRES_DB=notifications
-      - POSTGRES_USER=notifications
-      - POSTGRES_PASSWORD=notifications
+      POSTGRES_DB: notifications
+      POSTGRES_USER: notifications
+      POSTGRES_PASSWORD: notifications
     ports:
       - "5433:5432"
     volumes:
       - notifications-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U notifications -d notifications" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   kafka:
     image: apache/kafka:latest
@@ -61,6 +71,8 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+
       # Настройки для single-node (репликация 1)
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -72,5 +84,33 @@ services:
 
       # Любой постоянный Cluster ID
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+  kafka-init:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.api  # тот же образ, что и для API
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    command: [ "python", "-m", "notifications.kafka_init" ]
+    restart: "no"
+
+  notifications-db-init:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.api  # та же картинка, что и для API
+    depends_on:
+      notifications-db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=notifications-db
+      - DB_PORT=5432
+      - DB_NAME=notifications
+      - DB_USER=notifications
+      - DB_PASSWORD=notifications
+    command: ["python", "-m", "notifications.db_init" ]
+    restart: "no"
+
 volumes:
   notifications-db-data:

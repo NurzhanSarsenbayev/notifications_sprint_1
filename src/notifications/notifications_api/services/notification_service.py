@@ -12,7 +12,7 @@ from notifications.notifications_api.schemas.event import (
     NewFilmReleasedEventPayload,
     CampaignTriggeredEventPayload,
 )
-from notifications.notifications_api.schemas.notification_job import (
+from notifications.common.schemas import (
     NotificationChannel,
     NotificationJob,
     NotificationMeta,

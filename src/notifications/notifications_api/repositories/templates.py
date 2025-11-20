@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from notifications.notifications_api.schemas.notification_job import NotificationChannel
+from notifications.common.schemas import NotificationChannel
 from notifications.notifications_api.schemas.template import TemplateCreate, TemplateUpdate
 from notifications.db.models import Template
 

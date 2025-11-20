@@ -8,6 +8,7 @@
 
 Реализацию добавим на этапе подключения Kafka.
 """
+import asyncio
 import json
 from typing import Any, Dict, Optional
 
@@ -27,27 +28,60 @@ class KafkaNotificationJobPublisher:
         self._bootstrap_servers = bootstrap_servers
         self._topic = topic
         self._producer: Optional[AIOKafkaProducer] = None
-        self._enabled: bool = True  # если старт не удался — отключим
+        self._enabled: bool = True  # если старт не удался и мы ушли в dummy
 
     async def start(self) -> None:
+        """Стартуем продюсер с несколькими попытками.
+
+        Если Kafka реально недоступна после N попыток — отключаемся и
+        работаем в dummy-режиме.
+        """
         if self._producer is not None or not self._enabled:
             return
 
-        producer = AIOKafkaProducer(
-            bootstrap_servers=self._bootstrap_servers,
-            value_serializer=lambda v: json.dumps(v, default=str).encode("utf-8"),
-        )
-        try:
-            await producer.start()
-        except Exception as exc:
-            # ВАЖНО: не уронить всё приложение, если Kafka не поднялась вовремя
-            print(f"[KAFKA] Failed to start producer, running in dummy mode: {exc}")
-            self._enabled = False
-            self._producer = None
-            return
+        max_attempts = 10
+        delay_seconds = 1
 
-        self._producer = producer
-        print("[KAFKA] Producer started")
+        for attempt in range(1, max_attempts + 1):
+            producer = AIOKafkaProducer(
+                bootstrap_servers=self._bootstrap_servers,
+                value_serializer=lambda v: json.dumps(v, default=str).encode("utf-8"),
+            )
+            try:
+                print(
+                    f"[KAFKA] Starting producer (attempt {attempt}/{max_attempts}) "
+                    f"to {self._bootstrap_servers}"
+                )
+                await producer.start()
+            except Exception as exc:
+                # Не уронить всё приложение, если Kafka не поднялась вовремя
+                print(
+                    f"[KAFKA] Failed to start producer on attempt "
+                    f"{attempt}/{max_attempts}: {exc}"
+                )
+                try:
+                    await producer.stop()
+                except Exception:
+                    # если не стартанул, stop() тоже может бросить — игнорируем
+                    pass
+
+                if attempt == max_attempts:
+                    print(
+                        "[KAFKA] Giving up starting producer, "
+                        "running in dummy mode"
+                    )
+                    self._enabled = False
+                    self._producer = None
+                    return
+
+                await asyncio.sleep(delay_seconds)
+                continue
+
+            # Успешный старт
+            self._producer = producer
+            self._enabled = True
+            print("[KAFKA] Producer started")
+            return
 
     async def stop(self) -> None:
         if self._producer is None:
@@ -75,5 +109,5 @@ class KafkaNotificationJobPublisher:
 
 kafka_publisher = KafkaNotificationJobPublisher(
     bootstrap_servers=settings.kafka_bootstrap_servers,
-    topic="notifications.outbox",
+    topic=settings.kafka_outbox_topic,  # лучше использовать общий конфиг
 )

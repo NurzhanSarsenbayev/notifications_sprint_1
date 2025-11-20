@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from notifications.notifications_api.schemas.notification_job import NotificationChannel
+from notifications.common.schemas import NotificationChannel
 
 
 class TemplateBase(BaseModel):
