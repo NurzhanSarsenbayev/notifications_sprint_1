@@ -4,8 +4,10 @@ from fastapi import FastAPI
 
 from notifications.common.config import settings
 from notifications.common.kafka import kafka_publisher
-from notifications.notifications_api.api.v1.events import router as events_router
-from notifications.notifications_api.api.v1.templates import router as templates_router
+from notifications.notifications_api.api.v1.events import (
+    router as events_router)
+from notifications.notifications_api.api.v1.templates import (
+    router as templates_router)
 
 
 @asynccontextmanager

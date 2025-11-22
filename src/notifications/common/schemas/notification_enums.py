@@ -1,10 +1,12 @@
 from enum import Enum
 
+
 class NotificationStatus(str, Enum):
     SENT = "SENT"
     FAILED = "FAILED"
     RETRYING = "RETRYING"
     EXPIRED = "EXPIRED"
+
 
 class NotificationChannel(str, Enum):
     EMAIL = "email"

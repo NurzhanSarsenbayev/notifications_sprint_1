@@ -1,25 +1,11 @@
-# from fastapi import APIRouter
-#
-# router = APIRouter()
-#
-#
-# @router.post("/", summary="Приём событий от других сервисов")
-# async def receive_event():
-#     """
-#     Заглушка эндпоинта приёма событий.
-#
-#     В дальнейшем здесь будет:
-#     - валидация Event через pydantic-схемы,
-#     - маппинг event_type -> обработчик,
-#     - формирование NotificationJob и публикация в Kafka.
-#     """
-#     return {"detail": "Not implemented yet"}
-
 from fastapi import APIRouter, Depends, status
 
-from notifications.notifications_api.schemas.event import BaseEvent as Event
-from notifications.notifications_api.services.notification_service import NotificationService
-from notifications.notifications_api.utils.dependencies import get_notification_service
+from notifications.notifications_api.schemas.event import (BaseEvent as
+                                                           Event)
+from notifications.notifications_api.services.notification_service import (
+    NotificationService)
+from notifications.notifications_api.utils.dependencies import (
+    get_notification_service)
 
 router = APIRouter(prefix="/events", tags=["events"])
 

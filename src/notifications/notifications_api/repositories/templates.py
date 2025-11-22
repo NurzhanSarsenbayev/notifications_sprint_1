@@ -5,7 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from notifications.common.schemas import NotificationChannel
-from notifications.notifications_api.schemas.template import TemplateCreate, TemplateUpdate
+from notifications.notifications_api.schemas.template import (
+    TemplateCreate,
+    TemplateUpdate)
 from notifications.db.models import Template
 
 
@@ -13,7 +15,11 @@ class TemplateRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list(self, *, offset: int = 0, limit: int = 100) -> Sequence[Template]:
+    async def list(
+            self,
+            *,
+            offset: int = 0,
+            limit: int = 100) -> Sequence[Template]:
         stmt = (
             select(Template)
             .order_by(Template.created_at.desc())
@@ -56,7 +62,10 @@ class TemplateRepository:
         await self._session.refresh(tpl)
         return tpl
 
-    async def update(self, template: Template, data: TemplateUpdate) -> Template:
+    async def update(
+            self,
+            template: Template,
+            data: TemplateUpdate) -> Template:
         if data.subject is not None:
             template.subject = data.subject
         if data.body is not None:

@@ -39,18 +39,27 @@ class Settings(BaseSettings):
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-    # Настройки воркера (можно оставить дефолтные, менять через env только при необходимости)
+    # Настройки воркера (можно оставить дефолтные,
+    # менять через env только при необходимости)
     max_attempts: int = 3
     retry_delays_seconds_raw: str = "1,3,10"
     max_send_delay_seconds: int = 300
 
+    # Auth service
+    auth_base_url: str = "http://auth-service:8000"
+
     @property
     def retry_delays_seconds(self) -> List[float]:
-        parts = [p.strip() for p in self.retry_delays_seconds_raw.split(",") if p.strip()]
+        parts = [p.strip() for p in self.retry_delays_seconds_raw.split(",")
+                 if p.strip()]
         try:
             return [float(p) for p in parts]
         except ValueError:
             return [1.0, 3.0, 10.0]
+
+    # Настройки для scheduler
+    api_base_url: str = "http://notifications-api:8000"
+    scheduler_poll_interval_seconds: int = 60
 
     class Config:
         env_file = ".env"

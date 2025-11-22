@@ -50,12 +50,14 @@ async def create_kafka_producer() -> AIOKafkaProducer:
     max_attempts = 10
     delay_seconds = 1
 
-    producer = AIOKafkaProducer(bootstrap_servers=settings.kafka_bootstrap_servers)
+    producer = AIOKafkaProducer(
+        bootstrap_servers=settings.kafka_bootstrap_servers)
 
     for attempt in range(1, max_attempts + 10):
         try:
             logger.info(
-                "Starting Kafka producer (attempt %s/%s)... bootstrap_servers=%s",
+                "Starting Kafka producer (attempt %s/%s)..."
+                " bootstrap_servers=%s",
                 attempt,
                 max_attempts,
                 settings.kafka_bootstrap_servers,

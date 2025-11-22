@@ -1,16 +1,24 @@
-from .notification_job import (
-    NotificationJob,
-    NotificationMeta,
-)
 from .notification_enums import (
     NotificationStatus,
     NotificationChannel,
-    NotificationPriority)
+    NotificationPriority,
+)
+from .notification_job import NotificationJob, NotificationMeta
+from .events import (
+    EventType,
+    EventIn,
+    CampaignTriggeredEventPayload,
+    SegmentRef,
+)
 
 __all__ = [
-    "NotificationJob",
+    "NotificationStatus",
     "NotificationChannel",
     "NotificationPriority",
+    "NotificationJob",
     "NotificationMeta",
-    "NotificationStatus"
+    "EventType",
+    "EventIn",
+    "CampaignTriggeredEventPayload",
+    "SegmentRef",
 ]

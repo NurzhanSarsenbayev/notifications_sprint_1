@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from ..auth import AuthClient
 from ..dlq import DlqPublisher
@@ -13,7 +12,8 @@ from ..senders import EmailSender, PushSender, WsSender
 from .timing import handle_expiration_if_needed, wait_send_after_if_needed
 from .retry_engine import attempt_with_retries
 
-from src.notifications.worker.core.config import Settings
+from src.notifications.common.config import Settings
+
 from src.notifications.common.schemas import (
     NotificationStatus,
     NotificationChannel,
@@ -179,4 +179,3 @@ class JobProcessor:
             # На всякий случай — если в будущем кто-то запихнет канал,
             # которого у нас ещё нет реализации.
             raise RuntimeError(f"Unsupported channel: {channel_str}")
-

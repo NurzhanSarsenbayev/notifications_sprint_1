@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 async def app() -> None:
     logger.info(
-        "Notification worker app starting with kafka_bootstrap_servers=%s, outbox_topic=%s, dlq_topic=%s",
+        "Notification worker app starting with"
+        " kafka_bootstrap_servers=%s, outbox_topic=%s, dlq_topic=%s",
         settings.kafka_bootstrap_servers,
         settings.kafka_outbox_topic,
         settings.kafka_dlq_topic,
@@ -71,7 +72,8 @@ async def app() -> None:
             logger.warning("Signal handlers not supported in this environment")
 
     logger.info("Starting Kafka consumer task...")
-    consumer_task = asyncio.create_task(consumer.start(), name="kafka-consumer")
+    consumer_task = asyncio.create_task(consumer.start(),
+                                        name="kafka-consumer")
 
     try:
         logger.info("Worker is running, waiting for stop event...")

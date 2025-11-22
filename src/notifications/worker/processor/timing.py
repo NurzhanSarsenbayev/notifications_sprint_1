@@ -44,7 +44,9 @@ async def wait_send_after_if_needed(
     job: NotificationJob,
     max_send_delay_seconds: int,
 ) -> None:
-    """Обрабатывает send_after: ждёт до нужного момента (но не больше max_send_delay)."""
+    """Обрабатывает send_after:
+     ждёт до нужного момента
+      (но не больше max_send_delay)."""
     if not job.send_after:
         return
 
@@ -60,5 +62,6 @@ async def wait_send_after_if_needed(
     if delay <= 0:
         return
 
-    logger.info("Delaying job %s for %.2f sec until %s", job.job_id, delay, target)
+    logger.info("Delaying job %s for %.2f sec until %s",
+                job.job_id, delay, target)
     await asyncio.sleep(delay)

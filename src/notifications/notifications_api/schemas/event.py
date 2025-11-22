@@ -1,15 +1,3 @@
-"""
-Pydantic-схемы для входящих событий (Event).
-
-Здесь будут модели:
-- BaseEvent (event_id, event_type, source, occurred_at, payload)
-- UserRegisteredEventPayload
-- NewFilmReleasedEventPayload
-- CampaignTriggeredEventPayload
-
-Сами поля берем из docs/EVENTS.md.
-"""
-
 from datetime import datetime, date
 from enum import Enum
 from typing import List
@@ -54,7 +42,7 @@ class CampaignTriggeredSegment(BaseModel):
 class CampaignTriggeredEventPayload(BaseModel):
     campaign_id: UUID
     template_code: str
-    channels: List[str]  # "email", "push" и т.д.
+    channels: List[str]
     segment: CampaignTriggeredSegment
 
 

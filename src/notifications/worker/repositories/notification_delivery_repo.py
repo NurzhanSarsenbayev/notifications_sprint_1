@@ -24,7 +24,9 @@ class NotificationDeliveryRepository:
     def __init__(self, pool: asyncpg.Pool) -> None:
         self._pool = pool
 
-    async def get_by_job_id(self, job_id: UUID) -> Optional[NotificationDelivery]:
+    async def get_by_job_id(
+            self,
+            job_id: UUID) -> Optional[NotificationDelivery]:
         query = """
             SELECT job_id, user_id, status, attempts, error_message, sent_at
             FROM notification_delivery
@@ -57,7 +59,8 @@ class NotificationDeliveryRepository:
         error_message: Optional[str],
         sent_at: Optional[datetime],
     ) -> None:
-        """Upsert по job_id: либо создаём запись, либо обновляем статус/попытки.
+        """Upsert по job_id: либо создаём запись,
+         либо обновляем статус/попытки.
 
         Критично: channel всегда обязателен и не может быть NULL.
         """

@@ -21,7 +21,8 @@ async def wait_for_kafka(
     for attempt in range(1, attempts + 1):
         try:
             logger.info(
-                "Checking Kafka availability (attempt %s/%s)... bootstrap_servers=%s",
+                "Checking Kafka availability "
+                "(attempt %s/%s)... bootstrap_servers=%s",
                 attempt,
                 attempts,
                 bootstrap_servers,
@@ -69,7 +70,8 @@ async def create_topics() -> None:
 
     await wait_for_kafka(settings.kafka_bootstrap_servers)
 
-    admin = AIOKafkaAdminClient(bootstrap_servers=settings.kafka_bootstrap_servers)
+    admin = AIOKafkaAdminClient(
+        bootstrap_servers=settings.kafka_bootstrap_servers)
     await admin.start()
     try:
         existing: List[str] = list(await admin.list_topics())

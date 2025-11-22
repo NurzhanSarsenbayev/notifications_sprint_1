@@ -72,8 +72,13 @@ class NotificationDelivery(Base):
     )
 
     # ВАЖНО: job_id — PRIMARY KEY, идемпотентность по job_id
-    job_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
-    user_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False, index=True)
+    job_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        nullable=False,
+        index=True)
 
     channel: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(
@@ -130,5 +135,17 @@ class Campaign(Base):
         onupdate=func.now(),
         nullable=False,
     )
-
-# todo: дополнительные модели позже
+    last_triggered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    runs_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    max_runs: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )

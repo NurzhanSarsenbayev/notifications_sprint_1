@@ -1,16 +1,12 @@
-"""
-Модуль для описания зависимостей FastAPI (Kafka producer, настройки и т.п.).
-
-Пока оставляем пустым, реализуем на этапе подключения Kafka и настроек.
-"""
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from notifications.common.db import get_db_session
-from notifications.common.kafka import kafka_publisher, KafkaNotificationJobPublisher
-from notifications.notifications_api.repositories.templates import TemplateRepository
-from notifications.notifications_api.services.notification_service import NotificationService
+from notifications.common.kafka import kafka_publisher
+from notifications.notifications_api.repositories.templates import (
+    TemplateRepository)
+from notifications.notifications_api.services.notification_service import (
+    NotificationService)
 
 
 async def get_db(

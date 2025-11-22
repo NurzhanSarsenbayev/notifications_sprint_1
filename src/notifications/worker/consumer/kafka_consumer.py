@@ -1,13 +1,3 @@
-"""
-Здесь будет реализована логика чтения сообщений из Kafka
-и передачи их на обработку.
-
-Планируемая структура:
-- функция create_consumer(settings: WorkerSettings)
-- функция consume_forever(...)
-- обработка NotificationJob (в будущем)
-"""
-
 from __future__ import annotations
 
 import asyncio
@@ -20,6 +10,7 @@ from aiokafka.errors import KafkaError
 
 from ..dlq import DlqPublisher
 from src.notifications.common.schemas import NotificationJob
+from src.notifications.common.config import Settings
 from ..processor import JobProcessor
 
 logger = logging.getLogger(__name__)
@@ -88,15 +79,20 @@ class KafkaNotificationConsumer:
             payload: Any = json.loads(raw_value.decode("utf-8"))
         except Exception as exc:
             logger.exception("Failed to decode message from Kafka: %s", exc)
-            await self._dlq.publish_raw(raw_value, error_message="Invalid JSON in Kafka message")
+            await self._dlq.publish_raw(
+                raw_value,
+                error_message="Invalid JSON in Kafka message")
             return
 
         # 2. Валидация NotificationJob
         try:
             job = NotificationJob.model_validate(payload)
         except Exception as exc:
-            logger.exception("Failed to validate NotificationJob payload: %s", exc)
-            await self._dlq.publish_raw(raw_value, error_message="Invalid NotificationJob payload")
+            logger.exception("Failed to validate NotificationJob payload: %s",
+                             exc)
+            await self._dlq.publish_raw(
+                raw_value,
+                error_message="Invalid NotificationJob payload")
             return
 
         logger.info(

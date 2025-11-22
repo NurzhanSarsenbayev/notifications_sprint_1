@@ -54,6 +54,23 @@ services:
       retries: 10
       start_period: 5s
 
+  campaign-scheduler:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.api
+    command: [ "python", "-m", "notifications.campaign_scheduler.main" ]
+    depends_on:
+      - notifications-api
+    environment:
+      - DB_HOST=notifications-db
+      - DB_PORT=5432
+      - DB_NAME=notifications
+      - DB_USER=notifications
+      - DB_PASSWORD=notifications
+      - API_BASE_URL=http://notifications-api:8000
+      - SCHEDULER_POLL_INTERVAL_SECONDS=60
+    restart: unless-stopped
+
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -99,7 +116,7 @@ services:
   notifications-db-init:
     build:
       context: ..
-      dockerfile: ./infra/Dockerfile.api  # та же картинка, что и для API
+      dockerfile: ./infra/Dockerfile.api
     depends_on:
       notifications-db:
         condition: service_healthy
@@ -112,5 +129,31 @@ services:
     command: ["python", "-m", "notifications.db_init" ]
     restart: "no"
 
+  notifications-worker-tests:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.tests
+    working_dir: /app
+    command: ["pytest", "-vv", "--log-cli-level=INFO", "src/tests/worker"]
+    environment:
+      PYTHONPATH: "/app:/app/src"
+
+  notifications-api-tests:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.tests
+    working_dir: /app
+    command: [ "pytest",  "-vv", "--log-cli-level=INFO", "src/tests/api" ]
+    environment:
+      PYTHONPATH: "/app:/app/src"
+
+  notifications-campaign-scheduler-tests:
+    build:
+      context: ..
+      dockerfile: ./infra/Dockerfile.tests
+    working_dir: /app
+    command: [ "pytest",  "-vv", "--log-cli-level=INFO", "src/tests/campaign_scheduler" ]
+    environment:
+      PYTHONPATH: "/app:/app/src"
 volumes:
   notifications-db-data:

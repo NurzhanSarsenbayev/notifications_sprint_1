@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from uuid import UUID
 import logging
 
+import httpx
+
+from src.notifications.common.config import Settings  # или откуда у тебя берётся Settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -16,16 +20,45 @@ class UserContacts:
 
 
 class AuthClient:
-    """Stub-клиент для Auth-сервиса.
+    """Клиент для Auth-сервиса.
 
-    Сейчас возвращает фейк.
-    Позже можно заменить на httpx.AsyncClient и реальные запросы.
+    В бою:
+      - ходит в Auth по HTTP и возвращает реальные контакты.
+    В тестах:
+      - подменяется на FakeAuthClient через фикстуры.
     """
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
 
     async def get_user_contacts(self, user_id: UUID) -> UserContacts:
+        url = f"{self._settings.auth_base_url}/api/v1/users/{user_id}"
+
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                resp = await client.get(url)
+                resp.raise_for_status()
+                data = resp.json()
+        except Exception as exc:
+            # Fallback, чтобы не ломать воркер, если Auth недоступен.
+            logger.warning(
+                "AuthClient: failed to fetch user %s from %s: %s — using fake contacts",
+                user_id,
+                url,
+                exc,
+            )
+            return self._fake_contacts(user_id)
+
+        return UserContacts(
+            user_id=user_id,
+            email=data.get("email"),
+            push_token=data.get("push_token"),
+            ws_session_id=data.get("ws_session_id"),
+        )
+
+    @staticmethod
+    def _fake_contacts(user_id: UUID) -> UserContacts:
+        """MVP-режим: фейковые данные, чтобы не падать."""
         fake_email = f"user-{user_id}@example.com"
         fake_push = f"push-{user_id}"
         fake_ws = f"ws-{user_id}"
