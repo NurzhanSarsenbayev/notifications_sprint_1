@@ -1,9 +1,15 @@
 from typing import List
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Pydantic v2-style config
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
     # FastAPI
     project_name: str = "Notification API"
     api_v1_prefix: str = "/api/v1"
@@ -23,6 +29,9 @@ class Settings(BaseSettings):
     db_user: str = "notifications"
     db_password: str = "notifications"
 
+    # Логирование SQL
+    db_echo: bool = False
+
     @property
     def db_dsn(self) -> str:
         # Для SQLAlchemy (API) — с +asyncpg
@@ -39,8 +48,7 @@ class Settings(BaseSettings):
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
-    # Настройки воркера (можно оставить дефолтные,
-    # менять через env только при необходимости)
+    # Настройки воркера
     max_attempts: int = 3
     retry_delays_seconds_raw: str = "1,3,10"
     max_send_delay_seconds: int = 300
@@ -61,9 +69,9 @@ class Settings(BaseSettings):
     api_base_url: str = "http://notifications-api:8000"
     scheduler_poll_interval_seconds: int = 60
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
+    # Настройки для mailpit
+    smtp_host: str = "mailpit"
+    smtp_port: int = 1025
+    smtp_from: str = "noreply@cinema.kz"
 
 settings = Settings()

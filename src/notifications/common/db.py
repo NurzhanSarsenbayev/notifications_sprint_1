@@ -12,7 +12,7 @@ from notifications.common.config import settings
 
 engine: AsyncEngine = create_async_engine(
     settings.db_dsn,
-    echo=False,
+    echo=settings.db_echo,
     future=True,
 )
 

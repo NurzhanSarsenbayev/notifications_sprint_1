@@ -1,20 +1,20 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class NotificationStatus(str, Enum):
+class NotificationStatus(StrEnum):
     SENT = "SENT"
     FAILED = "FAILED"
     RETRYING = "RETRYING"
     EXPIRED = "EXPIRED"
 
 
-class NotificationChannel(str, Enum):
+class NotificationChannel(StrEnum):
     EMAIL = "email"
     PUSH = "push"
     WS = "ws"
     SMS = "sms"  # зарезервировано
 
 
-class NotificationPriority(str, Enum):
+class NotificationPriority(StrEnum):
     NORMAL = "normal"
     HIGH = "high"

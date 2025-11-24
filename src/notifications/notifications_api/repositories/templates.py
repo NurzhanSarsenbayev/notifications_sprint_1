@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence 
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from notifications.common.schemas import NotificationChannel
 from notifications.notifications_api.schemas.template import (
     TemplateCreate,
-    TemplateUpdate)
+    TemplateUpdate,
+)
 from notifications.db.models import Template
 
 
@@ -16,10 +17,11 @@ class TemplateRepository:
         self._session = session
 
     async def list(
-            self,
-            *,
-            offset: int = 0,
-            limit: int = 100) -> Sequence[Template]:
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> Sequence[Template]:
         stmt = (
             select(Template)
             .order_by(Template.created_at.desc())
@@ -29,17 +31,19 @@ class TemplateRepository:
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
-    async def get(self, template_id: UUID) -> Template | None:
+    async def find_by_id(self, template_id: UUID) -> Template | None:
+        """Найти шаблон по ID или вернуть None."""
         stmt = select(Template).where(Template.id == template_id)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_code_locale_channel(
+    async def find_by_code_locale_channel(
         self,
         template_code: str,
         locale: str,
         channel: NotificationChannel,
     ) -> Template | None:
+        """Найти шаблон по уникальному ключу или вернуть None."""
         stmt = select(Template).where(
             Template.template_code == template_code,
             Template.locale == locale,
@@ -63,9 +67,10 @@ class TemplateRepository:
         return tpl
 
     async def update(
-            self,
-            template: Template,
-            data: TemplateUpdate) -> Template:
+        self,
+        template: Template,
+        data: TemplateUpdate,
+    ) -> Template:
         if data.subject is not None:
             template.subject = data.subject
         if data.body is not None:

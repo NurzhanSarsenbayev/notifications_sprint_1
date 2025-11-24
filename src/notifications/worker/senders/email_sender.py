@@ -1,21 +1,24 @@
-from __future__ import annotations
-import logging
+import aiosmtplib
+from email.mime.text import MIMEText
 
-from .base import BaseSender
+class EmailSender:
+    def __init__(self, host: str, port: int, sender: str):
+        self.host = host
+        self.port = port
+        self.sender = sender
 
-logger = logging.getLogger(__name__)
+    async def send(self, to: str, subject: str, body: str) -> None:
+        """Отправляет письмо через локальный SMTP (Mailpit)."""
 
+        msg = MIMEText(body, "html")
+        msg["Subject"] = subject
+        msg["From"] = self.sender
+        msg["To"] = to
 
-class EmailSender(BaseSender):
-    """Отправка email (MVP: просто логирование)."""
-
-    async def send(self, *, to: str, subject: str, body: str) -> None:
-        if not to:
-            raise ValueError("Recipient email is empty")
-
-        logger.info(
-            "[EMAIL] Sending to=%s subject=%r body=%r",
-            to,
-            subject,
-            body,
+        await aiosmtplib.send(
+            msg,
+            hostname=self.host,
+            port=self.port,
+            sender=self.sender,
+            recipients=[to],
         )

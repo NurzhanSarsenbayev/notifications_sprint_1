@@ -151,10 +151,10 @@ class JobProcessor:
         if job.channel == NotificationChannel.EMAIL:
             if not contacts.email:
                 raise RuntimeError("User has no email")
-            await self.email_sender.send(
-                to=contacts.email,
-                subject=subject,
-                body=body,
+            await email_sender.send(
+                to=user.email,
+                subject=template.subject,
+                body=rendered_body,
             )
 
         elif job.channel == NotificationChannel.PUSH:

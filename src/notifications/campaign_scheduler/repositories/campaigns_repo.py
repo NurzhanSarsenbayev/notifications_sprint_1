@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 import asyncpg
@@ -19,9 +18,9 @@ class Campaign:
     segment_id: str
     status: str
     schedule_cron: str
-    last_triggered_at: Optional[datetime]
+    last_triggered_at: datetime | None
     runs_count: int
-    max_runs: Optional[int]
+    max_runs: int | None
 
 
 class CampaignRepository:
@@ -30,7 +29,7 @@ class CampaignRepository:
     def __init__(self, pool: asyncpg.Pool) -> None:
         self._pool = pool
 
-    async def get_active_campaigns(self) -> List[Campaign]:
+    async def get_active_campaigns(self) -> list[Campaign]:
         """Вернуть все активные кампании (status = ACTIVE)."""
         query = """
             SELECT

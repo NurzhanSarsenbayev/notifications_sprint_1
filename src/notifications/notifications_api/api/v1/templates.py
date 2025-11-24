@@ -4,14 +4,16 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from notifications.notifications_api.repositories.templates import (
-    TemplateRepository)
+    TemplateRepository,
+)
 from notifications.notifications_api.schemas.template import (
     TemplateCreate,
     TemplateRead,
     TemplateUpdate,
 )
 from notifications.notifications_api.utils.dependencies import (
-    get_template_repository)
+    get_template_repository,
+)
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -21,7 +23,7 @@ async def list_templates(
     repo: TemplateRepository = Depends(get_template_repository),
     offset: int = Query(0, ge=0),
     limit: int = Query(100, gt=0, le=1000),
-):
+) -> list[TemplateRead]:
     templates = await repo.list(offset=offset, limit=limit)
     return [
         TemplateRead.model_validate(tpl, from_attributes=True)
@@ -37,7 +39,7 @@ async def list_templates(
 async def create_template(
     data: TemplateCreate,
     repo: TemplateRepository = Depends(get_template_repository),
-):
+) -> TemplateRead:
     try:
         tpl = await repo.create(data)
     except IntegrityError:
@@ -53,8 +55,8 @@ async def create_template(
 async def get_template(
     template_id: UUID,
     repo: TemplateRepository = Depends(get_template_repository),
-):
-    tpl = await repo.get(template_id)
+) -> TemplateRead:
+    tpl = await repo.find_by_id(template_id)
     if tpl is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -68,8 +70,8 @@ async def update_template(
     template_id: UUID,
     data: TemplateUpdate,
     repo: TemplateRepository = Depends(get_template_repository),
-):
-    tpl = await repo.get(template_id)
+) -> TemplateRead:
+    tpl = await repo.find_by_id(template_id)
     if tpl is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -78,3 +80,4 @@ async def update_template(
 
     tpl = await repo.update(tpl, data)
     return TemplateRead.model_validate(tpl, from_attributes=True)
+

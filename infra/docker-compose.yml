@@ -155,5 +155,16 @@ services:
     command: [ "pytest",  "-vv", "--log-cli-level=INFO", "src/tests/campaign_scheduler" ]
     environment:
       PYTHONPATH: "/app:/app/src"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:1025"   # SMTP server
+    environment:
+      MP_SMTP_BIND_ADDR: "0.0.0.0:1025"
+      MP_UI_BIND_ADDR: "0.0.0.0:8025"
+
 volumes:
   notifications-db-data:

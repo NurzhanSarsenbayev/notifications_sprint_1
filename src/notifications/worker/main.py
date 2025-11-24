@@ -36,7 +36,11 @@ async def app() -> None:
     template_repo = TemplateRepository(db_pool)
     delivery_repo = NotificationDeliveryRepository(db_pool)
     auth_client = AuthClient(settings)
-    email_sender = EmailSender()
+    email_sender = EmailSender(
+        host=settings.smtp_host,
+        port=settings.smtp_port,
+        sender=settings.smtp_from
+    )
     push_sender = PushSender()
     ws_sender = WsSender()
     dlq_publisher = DlqPublisher(settings, dlq_producer)
